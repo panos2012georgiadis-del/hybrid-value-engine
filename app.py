@@ -550,7 +550,7 @@ if run_match:
     # -------------------------
     # STEP 3: Hybrid p_true
     # -------------------------
-p_t1 = market_w*p_m1 + xg_w*p_x1
+    p_t1 = market_w*p_m1 + xg_w*p_x1
     p_tx = market_w*p_mx + xg_w*p_xx
     p_t2 = market_w*p_m2 + xg_w*p_x2
     mass = p_t1 + p_tx + p_t2
