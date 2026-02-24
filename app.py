@@ -503,4 +503,4 @@ if st.session_state.run_log:
     show = log_df[show_cols].copy()
     show["odds"] = show["odds"].map(lambda x: "" if pd.isna(x) else f"{x:.2f}")
     show["stake"] = show["stake"].map(lambda x: f"{x:.2f}")
-    show["ev_worst_pick"] = show["ev_worst_pick"].map(lamb
+    show["ev_worst_pick"] = show["ev_worst_pick"].map(lambda x: "" if pd.isna(x) else f"{x:.2f}")
