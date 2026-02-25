@@ -329,25 +329,78 @@ st.caption(
 # =========================
 # SIDEBAR CONTROLS
 # =========================
+# =========================
+# SIDEBAR CONTROLS
+# =========================
 with st.sidebar:
+
     st.header("⚙ Ρυθμίσεις")
-    bankroll = st.number_input("Bankroll (€)", min_value=1.0, value=500.0, step=10.0)
 
-    delta = st.slider("Delta (μείωση worst-case)", 0.00, 0.03, 0.02, 0.005)
-    ev_worst_min = st.slider("EV_worst_min (κατώφλι worst-case EV)", -0.02, 0.02, 0.00, 0.001)
+    # ===== LOCK SYSTEM =====
+    if "settings_unlocked" not in st.session_state:
+        st.session_state.settings_unlocked = False
 
-    market_w = st.slider("Market weight (βάρος αγοράς)", 0.0, 1.0, 0.7, 0.05)
+    st.session_state.settings_unlocked = st.toggle(
+        "🔒 Unlock settings",
+        value=st.session_state.settings_unlocked
+    )
+
+    LOCKED = not st.session_state.settings_unlocked
+
+    # ===== CORE SETTINGS =====
+    bankroll = st.number_input(
+        "Bankroll (€)",
+        min_value=1.0,
+        value=500.0,
+        step=10.0,
+        disabled=LOCKED
+    )
+
+    delta = st.slider(
+        "Delta (μείωση worst-case)",
+        0.00, 0.03, 0.02, 0.005,
+        disabled=LOCKED
+    )
+
+    ev_worst_min = st.slider(
+        "EV_worst_min (κατώφλι worst-case EV)",
+        -0.02, 0.02, 0.00, 0.001,
+        disabled=LOCKED
+    )
+
+    market_w = st.slider(
+        "Market weight (βάρος αγοράς)",
+        0.0, 1.0, 0.7, 0.05,
+        disabled=LOCKED
+    )
+
     xg_w = 1.0 - market_w
 
-    kelly_frac = st.slider("Kelly fraction (ποσοστό Kelly)", 0.0, 1.0, 0.25, 0.05)
-    cap_pct = st.slider("Cap % bankroll (ταβάνι %)", 0.01, 0.10, 0.05, 0.01)
+    kelly_frac = st.slider(
+        "Kelly fraction (ποσοστό Kelly)",
+        0.0, 1.0, 0.25, 0.05,
+        disabled=LOCKED
+    )
 
-    max_goals = st.slider("Poisson max goals", 7, 12, 10, 1)
+    cap_pct = st.slider(
+        "Cap % bankroll (ταβάνι %)",
+        0.01, 0.10, 0.05, 0.01,
+        disabled=LOCKED
+    )
+
+    max_goals = st.slider(
+        "Poisson max goals",
+        7, 12, 10, 1,
+        disabled=LOCKED
+    )
 
     st.divider()
+
+    # ===== CSV INPUTS =====
     st.header("📄 CSV Inputs (Home/Away)")
-    home_file = st.file_uploader("Upload HOME CSV", type=["csv"], key="home_csv")
-    away_file = st.file_uploader("Upload AWAY CSV", type=["csv"], key="away_csv")
+
+    home_file = st.file_uploader("Upload HOME CSV", type=["csv"])
+    away_file = st.file_uploader("Upload AWAY CSV", type=["csv"])
 
     if home_file and away_file:
         try:
@@ -364,8 +417,10 @@ with st.sidebar:
                 f"Home league avg xG: {st.session_state.league_home_avg:.6f}\n"
                 f"Away league avg xG: {st.session_state.league_away_avg:.6f}"
             )
+
         except Exception as e:
             st.error(f"CSV load failed: {e}")
+
     else:
         st.info("Ανέβασε ΚΑΙ τα δύο CSV (Home + Away).")
 
