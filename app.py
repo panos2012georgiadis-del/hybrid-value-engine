@@ -584,7 +584,7 @@ if run_match:
     # -------------------------
     # STEP 6: AUDIT checks
     # -------------------------
-mass_ok = abs(mass - 1.0) <= 0.002
+    mass_ok = abs(mass - 1.0) <= 0.002
 
     market_best = max([("1", p_m1), ("X", p_mx), ("2", p_m2)], key=lambda t: t[1])[0]
     xg_best = max([("1", p_x1), ("X", p_xx), ("2", p_x2)], key=lambda t: t[1])[0]
@@ -651,7 +651,7 @@ mass_ok = abs(mass - 1.0) <= 0.002
     # -------------------------
     # Append to run history (PERSISTENT)
     # -------------------------
-run_row = {
+    run_row = {
         "run_id": st.session_state.run_id,
         "timestamp_local": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "kickoff_local": kickoff_local.strftime("%Y-%m-%d %H:%M:%S"),
