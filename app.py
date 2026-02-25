@@ -790,7 +790,7 @@ else:
         btn_v = st.button("Set VOID", key=f"void_{st.session_state.run_id}_{idx}")
 
     def _apply_settle(result_code: str):
-        nonlocal df
+        
         open_odds = float(row["odds"])
         stake = float(row["stake"])
         pnl = settle_pnl(outcome_pick=str(row["pick"]), result=result_code, odds=open_odds, stake=stake)
