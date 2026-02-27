@@ -810,33 +810,56 @@ for c in ["odds", "stake", "ev_mid_pick", "ev_worst_pick", "closing_odds", "clv_
 st.dataframe(disp_hist, use_container_width=True)
 
 # =========================
-# SETTLE + CLV UI
+# SETTLE + CLV UI (ROI Controlled)
 # =========================
-st.markdown("### Settle Bet + CLV (κουμπί, όχι manual W/L/V)")
-st.caption("Για κάθε bet: βάλε closing odds (Stoiximan) και πάτα Win/Loss/Void. Αυτό ενημερώνει PnL, CLV και equity.")
 
-# We only allow actions for rows with a bet (pick != NO BET)
-bet_rows = df.index[df["pick"].astype(str) != "NO BET"].tolist()
-if not bet_rows:
-    st.info("Δεν υπάρχουν bets (όλα NO BET) σε αυτό το run.")
+st.markdown("### Settle Bet + CLV (ROI controlled)")
+st.caption("Βάλε closing odds και επίλεξε αν το bet θα μετρήσει στο ROI.")
+
+# Ensure column exists (backward compatible)
+if "roi_included" not in df.columns:
+    df["roi_included"] = True
 else:
-    # Choose match to settle
-    options = [(i, f"{df.loc[i, 'kickoff_local']} | {df.loc[i, 'match']} | {df.loc[i, 'pick']} @ {df.loc[i, 'odds']}") for i in bet_rows]
-    idx = st.selectbox("Select bet to update", options=options, format_func=lambda x: x[1])[0]
+    df["roi_included"] = df["roi_included"].fillna(True).astype(bool)
+
+bet_rows = df.index[df["pick"].astype(str) != "NO BET"].tolist()
+
+if not bet_rows:
+    st.info("Δεν υπάρχουν bets σε αυτό το run.")
+else:
+    options = [
+        (i, f"{df.loc[i,'kickoff_local']} | {df.loc[i,'match']} | "
+            f"{df.loc[i,'pick']} @ {df.loc[i,'odds']} | €{df.loc[i,'stake']}")
+        for i in bet_rows
+    ]
+
+    idx = st.selectbox(
+        "Select bet to update",
+        options=options,
+        format_func=lambda x: x[1]
+    )[0]
 
     row = df.loc[idx].copy()
 
-    st.write(f"**Selected:** {row['match']} | Pick: **{row['pick']}** @ **{row['odds']}** | Stake: **€{row['stake']}**")
+    st.write(f"**Selected:** {row['match']} | Pick: **{row['pick']}** @ {row['odds']}")
 
-    c1, c2, c3, c4 = st.columns([1.2, 1, 1, 1])
+    c1, c2, c3, c4 = st.columns([1.4, 1, 1, 1])
+
     with c1:
         closing = st.number_input(
             "Closing odds (Stoiximan)",
             min_value=1.01,
-            value=float(row["closing_odds"]) if pd.notna(row["closing_odds"]) else float(row["odds"]),
+            value=float(row["closing_odds"]) if pd.notna(row.get("closing_odds", None)) else float(row["odds"]),
             step=0.01,
             key=f"closing_{st.session_state.run_id}_{idx}"
         )
+
+        roi_included = st.checkbox(
+            "Count in ROI / Equity",
+            value=bool(row.get("roi_included", True)),
+            key=f"roi_{st.session_state.run_id}_{idx}"
+        )
+
     with c2:
         btn_w = st.button("Set WIN", key=f"win_{st.session_state.run_id}_{idx}")
     with c3:
@@ -845,10 +868,15 @@ else:
         btn_v = st.button("Set VOID", key=f"void_{st.session_state.run_id}_{idx}")
 
     def _apply_settle(result_code: str):
-        
         open_odds = float(row["odds"])
         stake = float(row["stake"])
-        pnl = settle_pnl(outcome_pick=str(row["pick"]), result=result_code, odds=open_odds, stake=stake)
+
+        pnl = settle_pnl(
+            outcome_pick=str(row["pick"]),
+            result=result_code,
+            odds=open_odds,
+            stake=stake
+        )
 
         df.at[idx, "closing_odds"] = float(closing)
         df.at[idx, "clv_pct"] = float(clv_pct(open_odds=open_odds, close_odds=float(closing)))
@@ -856,13 +884,14 @@ else:
         df.at[idx, "result"] = result_code
         df.at[idx, "pnl"] = float(pnl)
 
-        # Recompute EV bin (kept from bet time, but we store for reporting)
-        df.at[idx, "ev_bin"] = ev_bin(pd.to_numeric(df.at[idx, "ev_worst_pick"], errors="coerce"))
+        # NEW: ROI flag
+        df.at[idx, "roi_included"] = bool(roi_included)
 
-        # Persist
         st.session_state.run_df = df
         save_history(st.session_state.run_id, df)
-        st.success(f"Settled: {result_code} | PnL={pnl:.2f} | CLV={df.at[idx, 'clv_pct']:.4f}")
+
+        st.success(f"Settled: {result_code} | PnL={pnl:.2f}")
+        st.rerun()
 
     if btn_w:
         _apply_settle("W")
@@ -870,7 +899,6 @@ else:
         _apply_settle("L")
     if btn_v:
         _apply_settle("V")
-
 # =========================
 # RESEARCH DASHBOARD (CLV / EV BINS / EQUITY / DRAWDOWN)
 # =========================
