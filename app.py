@@ -485,10 +485,89 @@ if end_run:
     st.session_state.run_active = False
     st.success("Run ended.")
 
+# =========================
+# APP MODE (ENGINE / RESEARCH)
+# =========================
+st.divider()
+app_mode = st.radio(
+    "Mode",
+    ["ENGINE", "RESEARCH"],
+    horizontal=True,
+    index=0
+)
+st.divider()
+
+# =========================
+# RESEARCH MODE
+# =========================
+if app_mode == "RESEARCH":
+    st.header("📚 Research Mode — Run History")
+
+    runs = sorted(
+        [f for f in os.listdir(".") if f.startswith("history_run_") and f.endswith(".csv")]
+    )
+
+    if not runs:
+        st.info("Δεν υπάρχουν saved runs ακόμα.")
+        st.stop()
+
+    selected_run = st.selectbox("Διάλεξε run", runs, index=len(runs)-1)
+
+    try:
+        df_history = pd.read_csv(selected_run)
+    except Exception as e:
+        st.error(f"Δεν μπορώ να ανοίξω το αρχείο: {selected_run} ({e})")
+        st.stop()
+
+    st.dataframe(df_history, use_container_width=True)
+    st.stop()
+
+# =========================
+# ENGINE GUARD
+# =========================
+# =========================
+# APP MODE (ENGINE / RESEARCH)
+# =========================
+st.divider()
+app_mode = st.radio(
+    "Mode",
+    ["ENGINE", "RESEARCH"],
+    horizontal=True,
+    index=0
+)
+st.divider()
+
+# =========================
+# RESEARCH MODE
+# =========================
+if app_mode == "RESEARCH":
+    st.header("📚 Research Mode — Run History")
+
+    runs = sorted(
+        [f for f in os.listdir(".") if f.startswith("history_run_") and f.endswith(".csv")]
+    )
+
+    if not runs:
+        st.info("Δεν υπάρχουν saved runs ακόμα.")
+        st.stop()
+
+    selected_run = st.selectbox("Διάλεξε run", runs, index=len(runs)-1)
+
+    try:
+        df_history = pd.read_csv(selected_run)
+    except Exception as e:
+        st.error(f"Δεν μπορώ να ανοίξω το αρχείο: {selected_run} ({e})")
+        st.stop()
+
+    st.dataframe(df_history, use_container_width=True)
+    st.stop()
+
+# =========================
+# ENGINE GUARD
+# =========================
 if not st.session_state.run_active and st.session_state.run_df.empty:
     st.info("Πάτα **Start Run** για να ξεκινήσεις νέο run.")
     st.stop()
-
 # =========================
 # LEAGUE AVGS + CROSS-CHECK (RECALC EACH MATCH)
 # =========================
