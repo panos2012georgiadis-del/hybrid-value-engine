@@ -770,7 +770,7 @@ if run_match:
 
 
 # =========================
-# RESEARCH / HISTORY (ALWAYS VISIBLE UNDER ENGINE)  <-- mode 2
+# RESEARCH / HISTORY (ALWAYS VISIBLE UNDER ENGINE)  
 # =========================
 st.divider()
 st.subheader("📚 Research / History (πάντα κάτω)")
