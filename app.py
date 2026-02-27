@@ -511,16 +511,34 @@ if app_mode == "RESEARCH":
         st.info("Δεν υπάρχουν saved runs ακόμα.")
         st.stop()
 
-    selected_run = st.selectbox("Διάλεξε run", runs, index=len(runs)-1)
+selected_run = st.selectbox("Διάλεξε run", runs, index=len(runs)-1)
 
-    try:
-        df_history = pd.read_csv(selected_run)
-    except Exception as e:
-        st.error(f"Δεν μπορώ να ανοίξω το αρχείο: {selected_run} ({e})")
-        st.stop()
-
-    st.dataframe(df_history, use_container_width=True)
+try:
+    df_history = pd.read_csv(selected_run)
+except Exception as e:
+    st.error(f"Δεν μπορώ να ανοίξω το αρχείο: {selected_run} ({e})")
     st.stop()
+
+st.subheader("✏ Settlement Editor")
+
+# Βεβαιώσου ότι υπάρχουν οι στήλες
+for col in ["closing_odds", "result", "played", "include_in_eval"]:
+    if col not in df_history.columns:
+        if col == "played" or col == "include_in_eval":
+            df_history[col] = False
+        else:
+            df_history[col] = ""
+
+edited_df = st.data_editor(
+    df_history,
+    use_container_width=True,
+    num_rows="dynamic"
+)
+
+if st.button("💾 Save changes"):
+    edited_df.to_csv(selected_run, index=False)
+    st.success("Αποθηκεύτηκαν οι αλλαγές.")
+
 
 # =========================
 # ENGINE GUARD
