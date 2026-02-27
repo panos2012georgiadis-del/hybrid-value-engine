@@ -358,7 +358,7 @@ with st.sidebar:
 
     delta = st.slider(
         "Delta (μείωση worst-case)",
-        0.00, 0.03, 0.02, 0.005,
+        0.00, 0.03, 0.01, 0.005,
         disabled=LOCKED
     )
 
